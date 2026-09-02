@@ -1,0 +1,189 @@
+# Skills
+
+A collection of skills for product development workflows by [Unlearn](https://unlearn.dev).
+
+## Install
+
+```sh
+npx skills add unlearndev/skills
+```
+
+This uses [skills.sh](https://skills.sh) to install all skills into your project's `.claude/skills/` directory. Once installed, your agent will automatically detect and use them based on your prompts.
+
+To install a single skill:
+
+```sh
+npx skills add unlearndev/skills --skill spec-generator
+```
+
+## Skills
+
+| Skill | Description |
+|-------|-------------|
+| [spec-generator](#spec-generator) | Turn a vague idea into a detailed product spec |
+| [feature-generator](#feature-generator) | Expand a spec into an implementation-ready feature list |
+| [code-review](#code-review) | Review staged changes or a specific area of the codebase |
+| [checklist](#checklist) | Convert plans or reviews into persistent markdown checklists |
+| [review-order](#review-order) | Prepare a structured, scannable review map of a branch's changes |
+| [first-five](#first-five) | Triage a branch against the First Five checklist and flag only real concerns |
+| [triage](#triage) | Group a branch's changes into feature areas and assign risk tiers |
+| [zombies](#zombies) | Suggest the most relevant tests to write for a feature using the ZOMBIES heuristic |
+| [warm](#warm) | Evaluate newly added or upgraded dependencies against the WARM check |
+| [preflight](#preflight) | Produce a production pre-flight checklist of everything a branch needs once it merges |
+| [ship-gate](#ship-gate) | Scan the staged diff for secrets, debug code, and stray files and return a straight PASS or BLOCK |
+| [qa-checklist](#qa-checklist) | Turn a branch's diff into a short, click-through manual QA checklist for the feature |
+| [judge-arch](#judge-arch) | Judge a branch's changes against the design decisions in the repo's DECISIONS.md |
+
+### spec-generator
+
+Generate a detailed product specification from a rough idea, description, or supporting materials (screenshots, notes, wireframes).
+
+```
+> Write up a spec for a Slack bot that summarizes daily standups
+> Turn this idea into a requirements doc
+> /spec-generator
+```
+
+Outputs a structured markdown spec covering overview, user stories, data model, API, UI, and edge cases.
+
+### feature-generator
+
+Expand a `spec.md` into a full `features.md` ordered by implementation dependency, or keep the two files in sync when either changes.
+
+```
+> Generate features from the spec
+> Sync spec and features
+> /feature-generator
+```
+
+Features are ordered for optimal AI agent implementation: foundation first, then simple flows, complex features, admin features, and cross-cutting concerns.
+
+### code-review
+
+Review staged git changes or a specific area of the codebase. Optionally delegate to an alternative agent (codex, aider, goose).
+
+```
+> Review my staged changes
+> /code-review codex auth-module
+> /code-review
+```
+
+Findings are classified by severity: Critical, Error, Warning, Suggestion, and Nitpick.
+
+### checklist
+
+Convert the current plan, code review, or any structured content into a persistent markdown checklist saved to `.claude/plans/`.
+
+```
+> Turn this plan into a checklist
+> /checklist
+```
+
+Creates a trackable file with checkboxes that the agent checks off as it works through the implementation.
+
+### review-order
+
+Prepare a scannable map of a branch's changes, grouped by feature and ordered for review (Types → Data Flow → Business Logic → Edge Cases) with `file:line` citations.
+
+```
+> Prep a review of this branch
+> /review-order
+> /review-order develop
+```
+
+Outputs a descriptive map (no suggestions, no questions) so you can jump straight into the code yourself.
+
+### first-five
+
+Scan a branch or diff against the **First Five** checklist (Error Handling, Input Boundaries, External Calls, State Mutations, Assumed Dependencies) and report only genuine concerns — verified against the codebase, not flagged on suspicion.
+
+```
+> Run the first five on this branch
+> /first-five
+> /first-five develop
+```
+
+Outputs a short, scannable triage list with `file:line` citations and ⚠️ markers for high-severity findings. No fixes proposed, no clean-section placeholders.
+
+### triage
+
+Map a branch's changes into feature-area groups, each tiered as High / Medium / Low risk, so you can decide where to spend your review time. This is a triage map — not a review.
+
+```
+> Triage this branch
+> /triage
+> /triage develop
+```
+
+Outputs a risk-ordered report grouped by feature area (e.g. "Authentication", "Notification Delivery"), with auto-generated files pushed to a Skip section. No suggestions, no fixes — just a map.
+
+### zombies
+
+Identify the most valuable tests to write for a feature using the ZOMBIES heuristic (Zero, One, Many, Boundaries, Interface, Exceptions, Simple scenarios). Pass a free-text feature description, or omit the argument to use the current branch's diff.
+
+```
+> /zombies
+> /zombies sign-in code login flow
+> /zombies image upload validation
+```
+
+Outputs a grouped list of test ideas — only the ZOMBIES categories that genuinely apply, with specific values pulled from the code (column lengths, expiry windows, throttle limits) so you can see at a glance what's worth covering and write the tests yourself.
+
+### warm
+
+Evaluate newly added or upgraded dependencies against the **WARM** check (Worth it, Alive, Right-sized, Maintained securely). Covers client- and server-side dependencies in any language by diffing the changed manifests against a base.
+
+```
+> WARM check this branch
+> /warm
+> /warm develop
+```
+
+Outputs a per-dependency report scoring each WARM letter with a one-word verdict (Keep, Reconsider, Patch/Pin, Replace), ordered by concern. Facts come from real registry, repo, and advisory lookups — nothing fabricated. Evaluates and reports only; it never edits manifests or runs installs.
+
+### preflight
+
+Read the diff between the current branch and main and produce a production pre-flight checklist of everything that must be done or configured once the change merges (migrations, queue workers, env vars, new services).
+
+```
+> What needs doing in production before this merges?
+> /preflight
+```
+
+Outputs a short checklist grouped by type (Database, Infrastructure, Configuration, Operational), sub-grouped by confidence, with a file citation for every item.
+
+### ship-gate
+
+Scan the **staged** diff for the four things that should never be committed — secrets or API keys, leftover debug code (`dd()`, `console.log`), large commented-out blocks, and accidentally added large or binary files — reporting the file and line for each.
+
+```
+> Check what's staged before I commit
+> Anything I shouldn't commit here?
+> /ship-gate
+```
+
+Ends with a single **PASS** or **BLOCK** verdict, so it drops cleanly into a pre-commit or pre-push hook. Reports only — it never unstages or edits anything.
+
+### qa-checklist
+
+Read a branch's diff and produce a short, manual QA checklist to run against the feature — only the behaviour this change touched, written as plain-English steps a person can click through.
+
+```
+> What should I test on this branch after deploy?
+> /qa-checklist
+> /qa-checklist develop
+```
+
+Outputs a ~5–10 item markdown checklist, each step pairing an action with its expected result, with any required preconditions (test accounts, feature flags) noted up front.
+
+### judge-arch
+
+Judge the current branch's changes against the design decisions recorded in the repo's `DECISIONS.md` — only those decisions, no other findings or style feedback. Every violation needs evidence you can point at in the change: a file and line, a whole file, or the set of files involved.
+
+```
+> Judge this branch against our decisions
+> Check this change against DECISIONS.md
+> /judge-arch
+```
+
+Outputs a report grouped by violated decision, each violation citing where it is, what the code does, and the smallest concrete fix that satisfies the decision.
